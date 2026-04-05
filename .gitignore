@@ -1,0 +1,35 @@
+# Secrets & credentials — NEVER commit
+.env
+data/google_token.json
+data/google_credentials.json
+
+# Personal health data — private
+data/identity_profile.yaml
+
+# Piper TTS models (large binaries)
+data/piper_models/
+
+# Logs
+*.log
+realtimesst.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# macOS
+.DS_Store
+
+# Next.js dashboard
+dashboard/node_modules/
+dashboard/.next/
+dashboard/.env*.local
+
+# History
+.baymax_history
