@@ -9,6 +9,8 @@ import VoiceInput from "@/components/VoiceInput";
 type Role = "user" | "assistant";
 interface Message { id: string; role: Role; text: string; }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
 // ── Same patterns as voice.py ─────────────────────────────────────
 const WAKE_WORD = /\b(baymax|bay\s*max|baym\w*|hey\s+\w*\s*max|hi\s+\w*\s*max)\b/i;
 const DISTRESS  = /\b(ouch|ow+|oww+|ahh+|argh|ugh|it\s+hurts?|i(?:'m|\s+am)\s+hurt|i(?:'m|\s+am)\s+in\s+pain|help\s+me|something\s+hurts?|i\s+fell|i\s+cut|i\s+burned?|i\s+feel\s+sick|i\s+feel\s+terrible|i\s+feel\s+awful|i(?:'m|\s+am)\s+bleeding|i(?:'m|\s+am)\s+dizzy|i\s+can't\s+breathe)\b/i;
@@ -49,7 +51,7 @@ export default function Home() {
   useEffect(() => {
     const stored = localStorage.getItem("baymax_session_id");
     if (stored) { setSessionId(stored); return; }
-    fetch("http://localhost:8000/api/session", { method: "POST" })
+    fetch(`${API_BASE}/api/session`, { method: "POST" })
       .then(r => r.json())
       .then(data => {
         localStorage.setItem("baymax_session_id", data.session_id);
@@ -73,7 +75,7 @@ export default function Home() {
     isSpeakingRef.current = true;
 
     try {
-      const res = await fetch(`http://localhost:8000/api/speak?text=${encodeURIComponent(text)}`);
+      const res = await fetch(`${API_BASE}/api/speak?text=${encodeURIComponent(text)}`);
       if (!res.ok) throw new Error("TTS failed");
       const blob  = await res.blob();
       const url   = URL.createObjectURL(blob);
@@ -98,7 +100,7 @@ export default function Home() {
     setIsStreaming(true);
     setStreamingText("");
 
-    const url = `http://localhost:8000/api/stream?session_id=${encodeURIComponent(sid)}&message=${encodeURIComponent(text)}`;
+    const url = `${API_BASE}/api/stream?session_id=${encodeURIComponent(sid)}&message=${encodeURIComponent(text)}`;
     const es  = new EventSource(url);
     esRef.current = es;
     let accumulated = "";
@@ -131,7 +133,7 @@ export default function Home() {
       const bye = "I will be here whenever you need me. Take care of yourself.";
       setMessages(prev => [...prev, { id: crypto.randomUUID(), role: "assistant", text: bye }]);
       playResponse(bye);
-      fetch("http://localhost:8000/api/reset", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: sid }) }).catch(() => {});
+      fetch(`${API_BASE}/api/reset`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: sid }) }).catch(() => {});
       return;
     }
 
@@ -220,7 +222,7 @@ export default function Home() {
     esRef.current?.close();
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
     try {
-      await fetch("http://localhost:8000/api/reset", {
+      await fetch(`${API_BASE}/api/reset`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: sessionId }),
       });
